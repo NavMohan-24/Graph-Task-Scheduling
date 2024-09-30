@@ -1,7 +1,6 @@
 import random
 import numpy as np
 import networkx as nx
-from typing import List, Dict
 
 class auxGraphConstructer:
     """
@@ -12,21 +11,18 @@ class auxGraphConstructer:
     edges (list): The list containing edges of the graph
     """
 
-    def __init__(self,edges: List[tuple]):
+    def __init__(self,edges:list):
         self.edges = edges
         
-    def construct_aux_graph(self) -> nx.Graph:
+    def construct_aux_graph(self):
         """
-        constructs the auxillary graph. Nodes will have label "isVisted". 
+        constructs the auxillary graph. 
+        Nodes will have label "isVisted". 
         Edges have 3 features: weights, probability and color.
-
         Weights = Time for the combination of nodes.
-        Probability = Assigned in such a manner that, edges taking least time will have highest probability.
-        Color = A parameter used in scheduling task. If color two pair of edges are same, 
+        Probability = assigned in such a manner that, edges taking least time will have highest probability.
+        Color = its a parameter used in scheduling task. If color two pair of edges are same, 
         then edge contraction can be performed simultaneously.
-
-        Returns:
-        (nx.Graph) : The auxiliary graph with labels and weights assigned.
         """
         edges = self.edges
         G = nx.Graph()
@@ -63,7 +59,7 @@ class RandomWalkScheduler(auxGraphConstructer):
     is done by Random Walks.
 
     Attributes:
-    auxG (nx.Graph) :The auxillary graph constructed from the edges provided.
+    auxG (networkx.Graph) :The auxillary graph constructed from the edges provided.
     num_of_steps (int) : Maximum number of steps the random walker takes. Fixed to a value which is 10 times the nodes in th graph.
     current_node (int) : Gives the info about the current node occupied by the Random walker during traversal.
     memory (set) : Stores the info about the neighbors in the previous node.
@@ -73,7 +69,7 @@ class RandomWalkScheduler(auxGraphConstructer):
 
 
     """
-    def __init__(self,edges:List[tuple], n_labs:int): # make num_of_steps optional
+    def __init__(self,edges, n_labs:int): # make num_of_steps optional
         super().__init__(edges)
         self.auxG = self.construct_aux_graph()
         self.num_of_steps = len(self.auxG.nodes())*100 # number of steps taken by random walker
@@ -84,12 +80,9 @@ class RandomWalkScheduler(auxGraphConstructer):
         self.buffer_index = 0
         
     
-    def allocate(self) -> str:
+    def allocate(self):
         """
         Allocates Labs at each time steps.
-
-        Returns:
-        (str): Lab name allocated.
         """
         if self.buffer_index >= len(self.lab_buffer):
             self.buffer_index = 0  # Reset index if it exceeds buffer length
@@ -97,7 +90,7 @@ class RandomWalkScheduler(auxGraphConstructer):
         self.buffer_index += 1
         return value
     
-    def _maxdegree_(self) -> int:
+    def _maxdegree_(self):
         """
         Finds the maximum degree of nodes in the graph.
 
@@ -108,7 +101,7 @@ class RandomWalkScheduler(auxGraphConstructer):
         degrees = max([self.auxG.degree(node) for node in nodes]) # maximum number of degrees in the graph
         return degrees
     
-    def start(self) -> int:
+    def start(self):
         """
         Chose an random initial node to start the traversal of the random walker
 
@@ -120,7 +113,7 @@ class RandomWalkScheduler(auxGraphConstructer):
         return initial_point
 
     
-    def lookup(self,G:nx.Graph) -> nx.Graph:
+    def lookup(self,G):
         """
         Color the edges of a node. Number of colors used to mark the edges is equal to maximum degree.
         If degree = 4, then colors avialable for marking is (1,2,3,4).
@@ -153,7 +146,7 @@ class RandomWalkScheduler(auxGraphConstructer):
 
         return G
 
-    def rectify(self,G:nx.Graph) -> Dict[int,int]:
+    def rectify(self,G):
 
         '''
         While at nodes, the randomwalker looks into mistakes made in coloring during previous iterations:
@@ -162,7 +155,7 @@ class RandomWalkScheduler(auxGraphConstructer):
         G (networkx.Graph): Colored graph
 
         Returns:
-        (dict) : Contains memory of the current iteration. It also contains info about the 
+        dict : containins memory of the current iteration. Dict contains info of the 
         neighbors of the current node and color of the edges shared between them.
         '''
 
@@ -182,12 +175,12 @@ class RandomWalkScheduler(auxGraphConstructer):
         self.auxG = G
         return updated_memory
 
-    def traverse(self) -> int:
+    def traverse(self):
         '''
         Traverse to next node
 
         Returns:
-        (int): Node where the randomwalker is going to be occupy.
+        node = node where the randomwalker is going to be occupy.
         '''
         node = self.current_node
         G = self.auxG
@@ -199,13 +192,13 @@ class RandomWalkScheduler(auxGraphConstructer):
 
         return node
     
-    def make_colored_graph(self) -> nx.Graph:
+    def make_colored_graph(self):
 
         """
         Colors the entire graph.
 
         Returns:
-        (nx.Graph): Colored graph.
+        colored graph
         """
 
         G = self.auxG
@@ -227,13 +220,14 @@ class RandomWalkScheduler(auxGraphConstructer):
         colored_graph = G
         return colored_graph
 
-    def create_schedule(self) -> Dict[str, Dict[str, List]]:
+    def create_schedule(self):
+
         """
         Create a shedules to perform combinations of components. (contraction of edges)
 
         Returns:
 
-        (dict) : Contains info about the edges to contract and labs assigned.
+        dict : contains info about the edges to contract and labs assigned.
 
         """
 
@@ -263,8 +257,14 @@ class RandomWalkScheduler(auxGraphConstructer):
             self.edges = list(colored_graph.edges())
             schedule[f'time_slot-{i+1}']= {'Labs_Allocated': [self.allocate() for i in range(len(edges_to_contract))], 
                                             'Edges_To_Combine': edges_to_contract}
+            
+            
+    
         
         return schedule
+
+
+
 
 
 
